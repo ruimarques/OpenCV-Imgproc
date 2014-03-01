@@ -8,6 +8,7 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -155,8 +156,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
         mItemPreviewF = menu.add("dilation");
         mItemPreviewG = menu.add("morph");
         mItemPreviewH = menu.add("findContours");
-        mItemPreviewI = menu.add("t7");
-        mItemPreviewJ = menu.add("t7");
+        mItemPreviewI = menu.add("rotation");
+        mItemPreviewJ = menu.add("warpAffine");
         return true;
     }
 
@@ -270,10 +271,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
     		findContoursTutorial();
     		break;
 	    case MainActivity.VIEW_MODE_I:
-			findContoursTutorial();
+	    	rotationTutorial();
 			break;
     	case MainActivity.VIEW_MODE_J:
-    		findContoursTutorial();
+    		rotationAffineTutorial();
     		break;    		
     	}
     	
@@ -444,6 +445,56 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
 		mRgba = mIntermediateMat;
 	}
 	
+	/** 
+	 * Image is first resized-to-fit the dst Mat and then rotated. 
+	 * 
+	 */
+	private void rotationTutorial(){
+		double ratio =  mRgba.height() / (double) mRgba.width();
+		
+		int rotatedHeight = mRgba.height();		
+		int rotatedWidth  = (int) Math.round(mRgba.height() * ratio);
+		
+		Imgproc.resize(mRgba, mIntermediateMat, new Size(rotatedHeight, rotatedWidth));
+		
+		Core.flip(mIntermediateMat.t(), mIntermediateMat, 0);
+		
+		Mat ROI = mRgba.submat(0, mIntermediateMat.rows(), 0, mIntermediateMat.cols());
+		
+		mIntermediateMat.copyTo(ROI);		
+	}
+	
+	
+	/** 
+	 * Image is rotated - cropped-to-fit dst Mat.
+	 * 
+	 */
+	private void rotationAffineTutorial(){
+		// assuming source image's with and height are a pair value:
+		int centerX = Math.round(mRgba.width()/2);
+		int centerY = Math.round(mRgba.height()/2);
+		
+		Point center = new Point(centerY,centerX);
+		double angle = 90;
+		double scale = 1.0;
+		
+		double ratio =  mRgba.height() / (double) mRgba.width();
+		
+		int rotatedHeight = (int) Math.round(mRgba.height());		
+		int rotatedWidth  = (int) Math.round(mRgba.height() * ratio);
+
+		Mat mapMatrix = Imgproc.getRotationMatrix2D(center, angle, scale);
+		
+		Size rotatedSize = new Size(rotatedWidth, rotatedHeight);
+		mIntermediateMat = new Mat(rotatedSize, mRgba.type());
+		
+		Imgproc.warpAffine(mRgba, mIntermediateMat, mapMatrix, mIntermediateMat.size(), Imgproc.INTER_LINEAR);
+
+		Mat ROI = mRgba.submat(0, mIntermediateMat.rows(), 0, mIntermediateMat.cols());
+		
+		mIntermediateMat.copyTo(ROI);
+	}	
+	
 	
 	private Mat getProcessingROI(Mat src){
 		Size size = src.size();
@@ -460,6 +511,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2, OnT
         
         return src.submat(top, top + height, left, left + width);
 	}
+	
 	private int getRandomUniformInt(int min, int max) {
 		Random r1 = new Random();
         return r1.nextInt() * (max - min) + min;
