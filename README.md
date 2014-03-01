@@ -12,7 +12,11 @@ SETUP:
 This tutorial is setup the same way as the official OpenCV Android samples.
 Follow the install instructions for those here: 
 
-http://docs.opencv.org/doc/tutorials/introduction/android_binary_package/O4A_SDK.html
+- http://docs.opencv.org/doc/tutorials/introduction/android_binary_package/O4A_SDK.html
+
+Original tutorials in C++:
+
+- http://docs.opencv.org/doc/tutorials/imgproc/table_of_content_imgproc/table_of_content_imgproc.html
 
 LICENSE:
 
